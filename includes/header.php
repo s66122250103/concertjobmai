@@ -15,24 +15,36 @@ require_once __DIR__ . '/../config/database.php';
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Kanit', sans-serif; background: #0f0f1a; color: #fff; min-height: 100vh; }
 
-        /* ===== NAVBAR ===== */
         .navbar {
             background: rgba(15,15,26,0.95);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(108,99,255,0.3);
-            padding: 0 2rem;
+            padding: 0 1rem;
             position: sticky; top: 0; z-index: 999;
             display: flex; align-items: center; justify-content: space-between;
             height: 64px;
+            gap: .5rem;
         }
         .navbar-brand {
-            font-size: 1.5rem; font-weight: 700;
+            font-size: 1.3rem; font-weight: 700;
             background: linear-gradient(135deg, #6C63FF, #ff6584);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
-        .navbar-nav { display: flex; gap: 1.5rem; align-items: center; list-style: none; }
-        .navbar-nav a { color: #ccc; text-decoration: none; font-size: 0.95rem; transition: color .2s; }
+        .navbar-nav {
+            display: flex; gap: .8rem; align-items: center; list-style: none;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .navbar-nav::-webkit-scrollbar { display: none; }
+        .navbar-nav li { flex-shrink: 0; }
+        .navbar-nav a {
+            color: #ccc; text-decoration: none; font-size: 0.95rem; transition: color .2s;
+            white-space: nowrap;
+        }
         .navbar-nav a:hover { color: #6C63FF; }
         .btn-nav {
             background: linear-gradient(135deg, #6C63FF, #9c94ff);
@@ -42,7 +54,20 @@ require_once __DIR__ . '/../config/database.php';
         }
         .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(108,99,255,.5); }
 
-        /* ===== BUTTONS ===== */
+        @media (max-width: 768px) {
+            .navbar { padding: 0 .8rem; gap: .4rem; }
+            .navbar-brand { font-size: 1rem; }
+            .navbar-nav { gap: .5rem; }
+            .navbar-nav a { font-size: .78rem; }
+            .btn-nav { padding: .35rem .8rem; font-size: .78rem; }
+        }
+        @media (max-width: 480px) {
+            .navbar-brand { font-size: .85rem; }
+            .navbar-nav { gap: .35rem; }
+            .navbar-nav a { font-size: .68rem; }
+            .btn-nav { padding: .3rem .6rem; font-size: .68rem; }
+        }
+
         .btn {
             display: inline-block; padding: .6rem 1.5rem;
             border-radius: 50px; border: none; cursor: pointer;
@@ -56,7 +81,6 @@ require_once __DIR__ . '/../config/database.php';
         .btn-danger { background: linear-gradient(135deg,#ff4d6d,#ff6584); color: #fff; }
         .btn-success { background: linear-gradient(135deg,#4CAF50,#81c784); color: #fff; }
 
-        /* ===== FORMS ===== */
         .form-group { margin-bottom: 1.2rem; }
         .form-group label { display: block; margin-bottom: .4rem; color: #aaa; font-size: .9rem; }
         .form-control {
@@ -69,15 +93,12 @@ require_once __DIR__ . '/../config/database.php';
         .form-control:focus { outline: none; border-color: #6C63FF; }
         .form-control::placeholder { color: #666; }
 
-        /* ===== ALERTS ===== */
         .alert { padding: .8rem 1.2rem; border-radius: 10px; margin-bottom: 1rem; font-size: .95rem; }
         .alert-danger  { background: rgba(255,77,109,.15); border: 1px solid rgba(255,77,109,.4); color: #ff8fa3; }
         .alert-success { background: rgba(76,175,80,.15);  border: 1px solid rgba(76,175,80,.4);  color: #81c784; }
 
-        /* ===== CONTAINER ===== */
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
 
-        /* ===== CARD ===== */
         .card {
             background: rgba(255,255,255,.05);
             border: 1px solid rgba(255,255,255,.1);

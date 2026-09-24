@@ -2,6 +2,18 @@
 // includes/header.php
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../config/database.php';
+
+// เช็กว่าเป็นแอดมินไหม (ปุ่ม "แอดมิน" จะขึ้นเฉพาะแอดมิน)
+$isAdmin = false;
+if (function_exists('isLoggedIn') && isLoggedIn()) {
+    try {
+        $st = getDB()->prepare('SELECT is_admin FROM users WHERE id = ?');
+        $st->execute([$_SESSION['user_id']]);
+        $isAdmin = (bool)$st->fetchColumn();
+    } catch (Throwable $e) {
+        $isAdmin = false;   // ถ้ายังไม่ได้รัน 01_migration.sql เว็บจะไม่พัง แค่ไม่มีปุ่ม
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -30,10 +42,9 @@ require_once __DIR__ . '/../config/database.php';
             background: linear-gradient(135deg, #6C63FF, #ff6584);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-decoration: none;
-            white-space: nowrap;
         }
         .navbar-nav { display: flex; gap: 1.5rem; align-items: center; list-style: none; }
-        .navbar-nav a { color: #ccc; text-decoration: none; font-size: 0.95rem; transition: color .2s; white-space: nowrap; }
+        .navbar-nav a { color: #ccc; text-decoration: none; font-size: 0.95rem; transition: color .2s; }
         .navbar-nav a:hover { color: #6C63FF; }
         .btn-nav {
             background: linear-gradient(135deg, #6C63FF, #9c94ff);
@@ -43,39 +54,13 @@ require_once __DIR__ . '/../config/database.php';
         }
         .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(108,99,255,.5); }
 
-        /* ===== HAMBURGER TOGGLE (ซ่อนไว้บนจอกว้าง) ===== */
-        .navbar-toggle {
-            display: none;
-            background: none; border: none; color: #fff;
-            font-size: 1.6rem; cursor: pointer; padding: .3rem .5rem;
+        /* ปุ่มแอดมิน */
+        .nav-admin {
+            color: #ffb547 !important;
+            border: 1px solid rgba(255,181,71,.45);
+            padding: .35rem .9rem; border-radius: 50px;
         }
-
-        /* ===== RESPONSIVE: มือถือ/จอแคบ ===== */
-        @media (max-width: 768px) {
-            .navbar { padding: 0 1rem; flex-wrap: wrap; height: auto; min-height: 64px; }
-            .navbar-toggle { display: block; }
-            .navbar-nav {
-                display: none;
-                flex-direction: column;
-                width: 100%;
-                gap: 0;
-                align-items: stretch;
-                background: rgba(15,15,26,0.98);
-                border-top: 1px solid rgba(108,99,255,0.3);
-            }
-            .navbar-nav.active { display: flex; }
-            .navbar-nav li { width: 100%; }
-            .navbar-nav a {
-                display: block;
-                padding: .9rem 1rem;
-                border-bottom: 1px solid rgba(255,255,255,.06);
-            }
-            .navbar-nav .btn-nav {
-                border-radius: 0;
-                text-align: center;
-                margin: 0;
-            }
-        }
+        .nav-admin:hover { background: rgba(255,181,71,.12); }
 
         /* ===== BUTTONS ===== */
         .btn {
@@ -125,14 +110,14 @@ require_once __DIR__ . '/../config/database.php';
 
 <nav class="navbar">
     <a class="navbar-brand" href="<?= BASE_URL ?>">🎵 ConcertBook</a>
-    <button class="navbar-toggle" onclick="document.getElementById('navMenu').classList.toggle('active')">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-    <ul class="navbar-nav" id="navMenu">
+    <ul class="navbar-nav">
         <li><a href="<?= BASE_URL ?>/pages/events.php">อีเวนต์</a></li>
         <?php if (isLoggedIn()): ?>
            <li><a href="<?= BASE_URL ?>/pages/Myticket.php">บัตรของฉัน</a></li>
-            <li><a href="<?= BASE_URL ?>/pages/profile.php"><?= htmlspecialchars($_SESSION['full_name']) ?></a></li>
+           <?php if ($isAdmin): ?>
+            <li><a href="<?= BASE_URL ?>/admin/" class="nav-admin"><i class="fa-solid fa-chart-line"></i> แอดมิน</a></li>
+           <?php endif; ?>
+            <li><a href="<?= BASE_URL ?>/pages/profile.php"><?= htmlspecialchars($_SESSION['full_name'] ?? '') ?></a></li>
             <li><a href="<?= BASE_URL ?>/pages/logout.php" class="btn-nav">ออกจากระบบ</a></li>
         <?php else: ?>
             <li><a href="<?= BASE_URL ?>/pages/login.php">เข้าสู่ระบบ</a></li>

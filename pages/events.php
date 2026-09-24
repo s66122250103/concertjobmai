@@ -132,6 +132,29 @@ include __DIR__ . '/../includes/header.php';
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 10px;
+    }
+
+    /* ชื่อโซน */
+    .zone-name {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: .72rem; color: #bbb; margin-bottom: 2px;
+    }
+    .zone-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    /* ราคาหน้าบัตร + บวกเพิ่ม */
+    .price-breakdown { font-size: .72rem; color: #888; margin-top: 2px; }
+    .price-breakdown .face { text-decoration: line-through; opacity: .8; }
+    .markup-badge {
+        display: inline-block;
+        background: rgba(255,181,71,.15);
+        color: #ffb547;
+        border: 1px solid rgba(255,181,71,.35);
+        border-radius: 50px;
+        padding: 0 .45rem;
+        font-size: .68rem;
+        font-weight: 600;
+        margin-left: 4px;
     }
 
     .btn-buy-now {
@@ -143,6 +166,7 @@ include __DIR__ . '/../includes/header.php';
         border-radius: 25px;
         font-weight: 800;
         box-shadow: 0 4px 10px rgba(255, 65, 108, 0.3);
+        flex-shrink: 0;
     }
 </style>
 
@@ -194,12 +218,33 @@ include __DIR__ . '/../includes/header.php';
                         <?php if(empty($event_tickets)): ?>
                             <p style="color:#444; font-size:0.8rem; text-align:center; padding:20px;">ยังไม่ระบุราคาบัตร</p>
                         <?php else: ?>
-                            <?php foreach ($event_tickets as $t): ?>
+                            <?php foreach ($event_tickets as $t):
+                                // ราคากลาง / บวกเพิ่ม (ถ้ายังไม่ได้ติดตั้งระบบหลังบ้าน จะถือว่าไม่ได้บวก)
+                                $face   = (float)($t['face_price'] ?? $t['price']);
+                                $markup = (float)($t['markup'] ?? 0);
+                            ?>
                                 <div class="ticket-row-sm">
                                     <div>
+                                        <?php if (trim($t['type_name'] ?? '') !== ''): ?>
+                                        <div class="zone-name">
+                                            <span class="zone-dot" style="background:<?= htmlspecialchars($t['color'] ?? '#6C63FF') ?>"></span>
+                                            <?= htmlspecialchars($t['type_name']) ?>
+                                        </div>
+                                        <?php endif; ?>
+
                                         <div style="font-size: 1rem; font-weight: 700; color: #fff;">
                                             <?= number_format($t['price']) ?> บาท
+                                            <?php if ($markup > 0): ?>
+                                                <span class="markup-badge">+<?= number_format($markup) ?></span>
+                                            <?php endif; ?>
                                         </div>
+
+                                        <?php if ($markup > 0): ?>
+                                        <div class="price-breakdown">
+                                            ราคาหน้าบัตร <span class="face"><?= number_format($face) ?></span> + บวกเพิ่ม <?= number_format($markup) ?> บาท
+                                        </div>
+                                        <?php endif; ?>
+
                                         <div style="font-size: 0.75rem; color: #888;">
                                             เหลือ <?= number_format($t['available_seats']) ?> ใบ
                                         </div>

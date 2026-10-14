@@ -1,28 +1,19 @@
 <?php
 /**
  * ไฟล์ตั้งค่ากลางของหน้าแอดมิน
- * ใช้การเชื่อมต่อฐานข้อมูลตัวเดียวกับเว็บหลัก (config/database.php -> getDB())
- * เว็บหลักต่อฐานข้อมูลไหน (XAMPP หรือ Aiven) หน้าแอดมินก็ใช้ตัวนั้น ไม่ต้องตั้งค่าซ้ำ
- *
- * โครงสร้างที่ต้องเป็น:
- *   config/database.php
- *   includes/auth.php
- *   pages/login.php
- *   admin/   <- โฟลเดอร์นี้ วางคู่กับ pages/
+ * ใช้การเชื่อมต่อฐานข้อมูลเดียวกับหน้าเว็บ (config/database.php → Aiven)
+ * จึงใช้ได้ทั้งในเครื่อง (XAMPP) และบน Render โดยไม่ต้องแก้อะไร
  */
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/auth.php';
-
 if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../config/database.php';
+
+define('LOGIN_URL', BASE_URL . '/pages/login.php');   // หน้าเข้าสู่ระบบของเว็บ
 
 $pdo = getDB();
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-define('LOGIN_URL', (defined('BASE_URL') ? BASE_URL : '..') . '/pages/login.php');
 
 /* ---------- ตรวจว่าเป็นแอดมิน ---------- */
-$uid = $_SESSION['user_id'] ?? null;   // ชื่อเดียวกับที่ pages/payment.php ใช้
+// รองรับชื่อ session ที่นิยมใช้ ถ้าเว็บคุณใช้ชื่ออื่นให้เพิ่มตรงนี้
+$uid = $_SESSION['user_id'] ?? $_SESSION['id'] ?? ($_SESSION['user']['id'] ?? null);
 if (!$uid) { header('Location: ' . LOGIN_URL); exit; }
 
 $st = $pdo->prepare('SELECT id, full_name, is_admin FROM users WHERE id = ?');
@@ -54,31 +45,10 @@ function type_label(array $t): string {
     return ($t['type_name'] !== '' ? $t['type_name'] : 'ไม่มีชื่อโซน #' . $t['id']);
 }
 
-/**
- * เก็บ "ราคากลาง ณ ตอนขาย" ไว้ในแต่ละรายการบัตรที่ขาย (order_items.face_price)
- * จะได้รู้ว่าบัตรแต่ละใบบวกไปเท่าไหร่ แม้ภายหลังจะเปลี่ยนราคาก็ตาม
- *   บวกเพิ่มต่อใบ = ราคาที่ลูกค้าจ่าย (unit_price) - ราคากลาง ณ ตอนนั้น (face_price)
- */
-function ensure_item_face_price(PDO $pdo, ?int $eventId = null): void {
-    static $checked = false;
-    if (!$checked) {
-        $has = $pdo->query("SELECT COUNT(*) FROM information_schema.COLUMNS
-                            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'order_items' AND COLUMN_NAME = 'face_price'")->fetchColumn();
-        if (!$has) $pdo->exec("ALTER TABLE `order_items` ADD COLUMN `face_price` DECIMAL(10,2) NULL AFTER `unit_price`");
-        $checked = true;
-    }
-    // รายการที่ยังไม่มีราคากลาง ให้ใช้ราคากลางปัจจุบันของโซน (ยังไม่เคยเปลี่ยนราคาตั้งแต่ขาย)
-    $sql = "UPDATE order_items oi JOIN ticket_types tt ON tt.id = oi.ticket_type_id
-            SET oi.face_price = COALESCE(tt.face_price, tt.price)
-            WHERE oi.face_price IS NULL" . ($eventId ? " AND tt.event_id = " . (int)$eventId : "");
-    $pdo->exec($sql);
-}
-
 /* ---------- เลย์เอาต์ ---------- */
 function admin_header(string $title, string $active): void {
     $menu = [
         'index.php'     => '📊 สรุปยอด',
-        'sales.php'     => '🎫 บัตรที่ขาย',
         'purchases.php' => '🧾 ซื้อบัตรเข้า',
         'pricing.php'   => '🏷️ ราคากลาง / บวกเพิ่ม',
         'suppliers.php' => '👤 ผู้ขาย',
@@ -92,7 +62,7 @@ function admin_header(string $title, string $active): void {
 <link rel="stylesheet" href="admin.css">
 </head><body>
 <nav class="topbar">
-  <a class="brand" href="<?= defined('BASE_URL') ? BASE_URL : '..' ?>/pages/events.php">🎵 ConcertBook <span>Admin</span></a>
+  <a class="brand" href="<?= BASE_URL ?>/pages/events.php">🎵 ConcertBook <span>Admin</span></a>
   <div class="tabs">
     <?php foreach ($menu as $href => $label): ?>
       <a href="<?= $href ?>" class="<?= $href === $active ? 'on' : '' ?>"><?= $label ?></a>

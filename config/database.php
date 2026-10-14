@@ -10,6 +10,15 @@ define('DB_USER', getenv('DB_USER') ?: 'avnadmin');
 define('DB_PASS', getenv('DB_PASS') ?: (file_exists(__DIR__ . '/secret.php') ? require __DIR__ . '/secret.php' : ''));
 define('DB_CHARSET', 'utf8mb4');
 
+// ใบรับรอง CA ของ Aiven (ไฟล์ ca.pem) ใช้เปิดการเชื่อมต่อแบบ SSL
+// Aiven บังคับ SSL และผู้ใช้แบบ caching_sha2_password ต้องล็อกอินผ่าน SSL
+$__ca = null;
+foreach ([__DIR__ . '/ca.pem', __DIR__ . '/../ca.pem'] as $__p) {
+    if (file_exists($__p)) { $__ca = realpath($__p); break; }
+}
+define('DB_SSL_CA', $__ca);
+unset($__ca, $__p);
+
 // เปิดผ่าน localhost -> ลิงก์ชี้ไปที่เครื่องตัวเอง / เปิดบน Render -> ลิงก์ชี้ไปที่ Render
 $__host = $_SERVER['HTTP_HOST'] ?? '';
 $__isLocal = in_array($__host, ['localhost', '127.0.0.1']) || str_starts_with($__host, 'localhost:');
@@ -26,12 +35,17 @@ function getDB() {
                    ";dbname=" . DB_NAME .
                    ";charset=" . DB_CHARSET;
 
-            $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+            $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-            ]);
+            ];
+            if (DB_SSL_CA) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = DB_SSL_CA;
+            }
+
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 
         } catch (PDOException $e) {
             die("เชื่อมต่อฐานข้อมูลไม่สำเร็จ: " . $e->getMessage());

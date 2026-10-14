@@ -49,6 +49,12 @@ include __DIR__ . '/../includes/header.php';
                     <label>รหัสผ่าน</label>
                     <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                 </div>
+
+                <!-- ลิงก์ลืมรหัสผ่าน -->
+                <div style="text-align:right;margin:-.6rem 0 1rem;">
+                    <a href="<?= BASE_URL ?>/pages/forgot_password.php" style="color:#8b83ff;font-size:.88rem;text-decoration:none;">ลืมรหัสผ่าน?</a>
+                </div>
+
                 <button type="submit" class="btn btn-primary" style="width:100%;margin-top:.5rem;">
                     เข้าสู่ระบบ
                 </button>

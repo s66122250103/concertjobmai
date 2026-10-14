@@ -25,7 +25,10 @@ if (function_exists('isLoggedIn') && isLoggedIn()) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::before, *::after { box-sizing: border-box; }
+        html, body { max-width: 100%; overflow-x: clip; }
         body { font-family: 'Kanit', sans-serif; background: #0f0f1a; color: #fff; min-height: 100vh; }
+        img { max-width: 100%; height: auto; }
 
         /* ===== NAVBAR ===== */
         .navbar {
@@ -44,7 +47,7 @@ if (function_exists('isLoggedIn') && isLoggedIn()) {
             text-decoration: none;
         }
         .navbar-nav { display: flex; gap: 1.5rem; align-items: center; list-style: none; }
-        .navbar-nav a { color: #ccc; text-decoration: none; font-size: 0.95rem; transition: color .2s; }
+        .navbar-nav a { color: #ccc; text-decoration: none; font-size: 0.95rem; transition: color .2s; white-space: nowrap; word-break: keep-all; }
         .navbar-nav a:hover { color: #6C63FF; }
         .btn-nav {
             background: linear-gradient(135deg, #6C63FF, #9c94ff);
@@ -104,6 +107,42 @@ if (function_exists('isLoggedIn') && isLoggedIn()) {
             border-radius: 16px; overflow: hidden;
         }
         .card-body { padding: 1.5rem; }
+
+        /* ===== ปรับสมดุลหน้าจอมือถือ ===== */
+        @media (max-width: 768px) {
+            /* Navbar: โลโก้บน เมนูล่าง จัดกลาง */
+            .navbar {
+                flex-direction: column; justify-content: center;
+                height: auto; padding: 12px 16px; gap: 10px;
+            }
+            .navbar-brand { font-size: 1.3rem; }
+            .navbar-nav {
+                width: 100%; flex-wrap: wrap;
+                justify-content: center; gap: 8px;
+            }
+            .navbar-nav a { display: inline-block; font-size: 14px; padding: 6px 12px; }
+            .navbar-nav a.btn-nav, .navbar-nav a.nav-admin { padding: 6px 14px; }
+
+            /* เนื้อหา: เว้นขอบซ้ายขวาเท่ากัน */
+            main, .container { padding-left: 16px !important; padding-right: 16px !important; }
+
+            /* การ์ดอีเวนต์: เรียงแนวตั้ง เต็มความกว้าง */
+            .events-grid, .event-list, .events-container {
+                display: grid !important; grid-template-columns: 1fr !important;
+                gap: 24px; overflow-x: visible !important;
+            }
+            .event-card {
+                width: 100% !important; min-width: 0 !important;
+                max-width: 100% !important; margin: 0 !important;
+            }
+
+            /* แถวราคาบัตร: ราคาซ้าย ปุ่มขวา */
+            .ticket-item, .ticket-row {
+                display: flex; align-items: center;
+                justify-content: space-between; gap: 12px;
+            }
+            .ticket-item .btn, .ticket-row .btn, .ticket-item button { flex-shrink: 0; }
+        }
     </style>
 </head>
 <body>
